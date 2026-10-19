@@ -1,0 +1,9 @@
+# Terraform state — contiene IDs de recursos locales, no commitear
+terraform.tfstate
+terraform.tfstate.backup
+.terraform/
+.terraform.lock.hcl
+
+# Variables con secretos
+*.tfvars
+!example.tfvars

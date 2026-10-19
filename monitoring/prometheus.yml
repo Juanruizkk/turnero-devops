@@ -1,0 +1,24 @@
+global:
+  scrape_interval: 15s
+  evaluation_interval: 15s
+
+scrape_configs:
+
+  # Prometheus se monitorea a sí mismo
+  - job_name: 'prometheus'
+    static_configs:
+      - targets: ['localhost:9090']
+
+  # API .NET 8 — expone /metrics con prometheus-net.AspNetCore
+  # host.docker.internal permite acceder al host desde dentro del contenedor Docker
+  - job_name: 'turnero-api'
+    static_configs:
+      - targets: ['host.docker.internal:5000']
+    metrics_path: '/metrics'
+    scrape_interval: 10s
+
+  # Si la API corre en Docker (producción), usar el nombre del contenedor:
+  # - job_name: 'turnero-api-prod'
+  #   static_configs:
+  #     - targets: ['turnero_api:8080']
+  #   metrics_path: '/metrics'

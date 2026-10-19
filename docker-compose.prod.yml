@@ -1,0 +1,88 @@
+# Producción: Postgres + API (.NET 8) + Frontend (React/Nginx)
+# Gestionado por Dokploy. Traefik (externo) maneja SSL y el ruteo de dominios.
+# Uso: configurar env vars en la UI de Dokploy, luego hacer deploy desde ahí.
+
+services:
+
+  postgres:
+    image: postgres:16
+    container_name: turnero_db
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - dokploy-network
+
+  api:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: turnero_api
+    restart: unless-stopped
+    environment:
+      ASPNETCORE_ENVIRONMENT: Production
+      ConnectionStrings__DefaultConnection: "Host=postgres;Port=5432;Database=${POSTGRES_DB};Username=${POSTGRES_USER};Password=${POSTGRES_PASSWORD}"
+      Jwt__Secret: ${Jwt__Secret}
+      Jwt__Issuer: ${Jwt__Issuer}
+      Jwt__Audience: ${Jwt__Audience}
+      Jwt__ExpirationHours: ${Jwt__ExpirationHours}
+      SuperAdmin__Email: ${SuperAdmin__Email}
+      SuperAdmin__Password: ${SuperAdmin__Password}
+      App__FrontendUrl: ${App__FrontendUrl}
+      App__BackendUrl: ${App__BackendUrl}
+      Resend__ApiToken: ${Resend__ApiToken}
+      Resend__FromEmail: ${Resend__FromEmail}
+      Resend__FromName: ${Resend__FromName}
+      MercadoPago__MasterAccessToken: ${MercadoPago__MasterAccessToken}
+      MercadoPagoOAuth__ClientId: ${MercadoPagoOAuth__ClientId}
+      MercadoPagoOAuth__ClientSecret: ${MercadoPagoOAuth__ClientSecret}
+      MercadoPagoOAuth__RedirectUri: ${MercadoPagoOAuth__RedirectUri}
+      Cloudinary__CloudName: ${Cloudinary__CloudName}
+      Cloudinary__ApiKey: ${Cloudinary__ApiKey}
+      Cloudinary__ApiSecret: ${Cloudinary__ApiSecret}
+      Cors__AllowedOrigins: ${Cors__AllowedOrigins}
+    depends_on:
+      postgres:
+        condition: service_healthy
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.turnero-api.rule=Host(`api.metaturnos.com`)"
+      - "traefik.http.routers.turnero-api.entrypoints=websecure"
+      - "traefik.http.routers.turnero-api.tls.certresolver=letsencrypt"
+      - "traefik.http.services.turnero-api.loadbalancer.server.port=8080"
+    networks:
+      - dokploy-network
+
+  frontend:
+    build:
+      context: ./frontend/turnero-ui
+      dockerfile: Dockerfile
+      args:
+        VITE_API_URL: https://api.metaturnos.com/api
+    container_name: turnero_frontend
+    restart: unless-stopped
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.turnero-frontend.rule=Host(`metaturnos.com`)"
+      - "traefik.http.routers.turnero-frontend.entrypoints=websecure"
+      - "traefik.http.routers.turnero-frontend.tls.certresolver=letsencrypt"
+      - "traefik.http.services.turnero-frontend.loadbalancer.server.port=80"
+    networks:
+      - dokploy-network
+
+volumes:
+  postgres_data:
+    driver: local
+
+networks:
+  dokploy-network:
+    external: true

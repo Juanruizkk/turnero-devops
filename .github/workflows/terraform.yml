@@ -1,0 +1,60 @@
+name: Terraform — Validate & Plan
+
+on:
+  push:
+    branches: [ main, master ]
+    paths:
+      - 'terraform/**'
+      - 'monitoring/**'
+      - '.github/workflows/terraform.yml'
+  pull_request:
+    branches: [ main, master ]
+    paths:
+      - 'terraform/**'
+      - 'monitoring/**'
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+
+  terraform:
+    name: "Terraform Validate & Plan"
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout código
+        uses: actions/checkout@v4
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: '~1.9'
+
+      # Verifica que todos los archivos .tf estén formateados correctamente.
+      # Si falla: correr `terraform fmt -recursive` localmente y hacer commit.
+      - name: Terraform Format Check
+        run: terraform fmt -check -recursive
+        working-directory: terraform/
+
+      # Inicializa el backend local y descarga el provider kreuzwerker/docker
+      - name: Terraform Init
+        run: terraform init
+        working-directory: terraform/
+
+      # Valida sintaxis y referencias internas sin conectarse a Docker
+      - name: Terraform Validate
+        run: terraform validate
+        working-directory: terraform/
+
+      # Plan contra el Docker daemon del runner (ubuntu-latest lo incluye).
+      # No hace apply: demuestra que la infraestructura es planificable.
+      # monitoring_config_path apunta a la carpeta monitoring/ del repo.
+      - name: Terraform Plan
+        run: |
+          terraform plan \
+            -input=false \
+            -var="docker_host=unix:///var/run/docker.sock" \
+            -var="monitoring_config_path=${{ github.workspace }}/monitoring"
+        working-directory: terraform/
