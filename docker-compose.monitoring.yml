@@ -1,0 +1,90 @@
+# Stack de monitoreo en producción: Prometheus + Grafana + Node Exporter + Blackbox
+# Deploy en Dokploy como una app de tipo "Docker Compose"
+#
+# URLs en producción (configurar dominio/puerto en Dokploy):
+#   Grafana:    http://TU-VPS:3000  (admin / cambiar con GF_SECURITY_ADMIN_PASSWORD)
+#   Prometheus: http://TU-VPS:9090
+#
+# Red compartida con el stack del backend: turnero_network
+# Asegurate de que el backend también esté en esa red (ver docker-compose.prod.yml)
+
+services:
+
+  prometheus:
+    image: prom/prometheus:v2.54.1
+    container_name: turnero_prometheus
+    restart: unless-stopped
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./monitoring/prometheus.prod.yml:/etc/prometheus/prometheus.yml:ro
+      - prometheus_data:/prometheus
+    command:
+      - --config.file=/etc/prometheus/prometheus.yml
+      - --storage.tsdb.path=/prometheus
+      - --storage.tsdb.retention.time=15d
+      - --web.enable-lifecycle
+    networks:
+      - monitoring
+      - dokploy-network
+
+  grafana:
+    image: grafana/grafana:11.2.0
+    container_name: turnero_grafana
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    environment:
+      GF_SECURITY_ADMIN_PASSWORD: ${GRAFANA_PASSWORD:-turnero2024}
+      GF_PATHS_PROVISIONING: /etc/grafana/provisioning
+      GF_USERS_ALLOW_SIGN_UP: "false"
+      GF_ANALYTICS_REPORTING_ENABLED: "false"
+      GF_SERVER_ROOT_URL: ${GRAFANA_ROOT_URL:-http://localhost:3000}
+    volumes:
+      - ./monitoring/grafana/datasources:/etc/grafana/provisioning/datasources:ro
+      - ./monitoring/grafana/dashboards:/etc/grafana/provisioning/dashboards:ro
+      - grafana_data:/var/lib/grafana
+    networks:
+      - monitoring
+    depends_on:
+      - prometheus
+
+  # Expone métricas del VPS: CPU, RAM, disco, red, carga del sistema
+  node-exporter:
+    image: prom/node-exporter:v1.8.2
+    container_name: turnero_node_exporter
+    restart: unless-stopped
+    pid: host
+    volumes:
+      - /proc:/host/proc:ro
+      - /sys:/host/sys:ro
+      - /:/rootfs:ro
+    command:
+      - --path.procfs=/host/proc
+      - --path.sysfs=/host/sys
+      - --path.rootfs=/rootfs
+      - --collector.filesystem.mount-points-exclude=^/(sys|proc|dev|host|etc)($$|/)
+    networks:
+      - monitoring
+
+  # Sondas HTTP: verifica que Resend, el frontend y la API estén respondiendo
+  blackbox-exporter:
+    image: prom/blackbox-exporter:v0.25.0
+    container_name: turnero_blackbox
+    restart: unless-stopped
+    volumes:
+      - ./monitoring/blackbox.yml:/etc/blackbox_exporter/config.yml:ro
+    networks:
+      - monitoring
+
+volumes:
+  prometheus_data:
+  grafana_data:
+
+networks:
+  monitoring:
+    name: turnero_monitoring
+    driver: bridge
+  # Red externa donde corren el backend y Traefik — creada por Dokploy
+  dokploy-network:
+    external: true
