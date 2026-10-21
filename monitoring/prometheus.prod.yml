@@ -11,7 +11,7 @@ scrape_configs:
   # API .NET 8 — mismo nombre de contenedor que Dokploy asigna
   - job_name: 'turnero-api'
     static_configs:
-      - targets: ['metaturnos-backend-tkhdjm:8080']
+      - targets: ['metaturnos-backend-tkhdjm.1.qnn6xp2w3si6tqewddd7xssdb:8080']
     metrics_path: '/metrics'
     scrape_interval: 10s
 
