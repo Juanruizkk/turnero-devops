@@ -40,6 +40,7 @@ services:
       GF_SERVER_ROOT_URL: https://monitoreo.metaturnos.com
     labels:
       - "traefik.enable=true"
+      - "traefik.docker.network=dokploy-network"
       - "traefik.http.routers.grafana.rule=Host(`monitoreo.metaturnos.com`)"
       - "traefik.http.routers.grafana.entrypoints=websecure"
       - "traefik.http.routers.grafana.tls.certresolver=letsencrypt"
