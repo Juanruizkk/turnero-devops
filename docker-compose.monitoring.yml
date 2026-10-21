@@ -32,20 +32,25 @@ services:
     image: grafana/grafana:11.2.0
     container_name: turnero_grafana
     restart: unless-stopped
-    ports:
-      - "3001:3000"
     environment:
       GF_SECURITY_ADMIN_PASSWORD: ${GRAFANA_PASSWORD:-turnero2024}
       GF_PATHS_PROVISIONING: /etc/grafana/provisioning
       GF_USERS_ALLOW_SIGN_UP: "false"
       GF_ANALYTICS_REPORTING_ENABLED: "false"
-      GF_SERVER_ROOT_URL: ${GRAFANA_ROOT_URL:-http://localhost:3001}
+      GF_SERVER_ROOT_URL: https://monitoreo.metaturnos.com
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.grafana.rule=Host(`monitoreo.metaturnos.com`)"
+      - "traefik.http.routers.grafana.entrypoints=websecure"
+      - "traefik.http.routers.grafana.tls.certresolver=letsencrypt"
+      - "traefik.http.services.grafana.loadbalancer.server.port=3000"
     volumes:
       - ./monitoring/grafana/datasources:/etc/grafana/provisioning/datasources:ro
       - ./monitoring/grafana/dashboards:/etc/grafana/provisioning/dashboards:ro
       - grafana_data:/var/lib/grafana
     networks:
       - monitoring
+      - dokploy-network
     depends_on:
       - prometheus
 
