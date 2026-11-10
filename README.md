@@ -166,20 +166,27 @@ No hace `apply` en CI — la infraestructura es local.
 
 ## Capturas
 
-> Copiá las imágenes a `docs/screenshots/` del repo para que se vean acá.
+**CI/CD en GitHub Actions**
 
-| | |
+| Pipeline backend (6 jobs) | Pipeline frontend (4 jobs) |
 |---|---|
-| Pipeline CI backend (6 jobs en verde) | Snyk — dependencias analizadas |
-| SonarCloud — Quality Gate | Prometheus — targets activos |
-| Grafana local (Terraform) | Grafana producción (monitoreo.metaturnos.com) |
-| `terraform plan` — sin cambios | SBOM CycloneDX publicado como artifact |
+| ![CI backend](docs/screenshots/01-ci-backend.png) | ![CI frontend](docs/screenshots/03-ci-frontend.png) |
 
-```markdown
-![CI backend](docs/screenshots/01-ci-backend.png)
-![Grafana prod](docs/screenshots/09-grafana-prod.png)
-![Terraform plan](docs/screenshots/10-terraform-plan.png)
-```
+**Seguridad y calidad**
+
+| Snyk backend | SonarCloud backend |
+|---|---|
+| ![Snyk backend](docs/screenshots/02-snyk-backend.png) | ![SonarCloud](docs/screenshots/06-SonarQube-back.png) |
+
+**Observabilidad**
+
+| Grafana local (Terraform) | Grafana producción |
+|---|---|
+| ![Grafana local](docs/screenshots/07-grafana-local.png) | ![Grafana prod](docs/screenshots/09-grafana-prod.png) |
+
+| Prometheus — targets activos | `terraform plan` — sin cambios |
+|---|---|
+| ![Prometheus](docs/screenshots/08-prometheus-targets.png) | ![Terraform plan](docs/screenshots/10-terraform-plan.png) |
 
 ## Licencia
 
