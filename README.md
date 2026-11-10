@@ -1,6 +1,27 @@
 # turnero-devops
 
-Infraestructura DevOps del proyecto **TurneroApp** — gestiona el stack de observabilidad y calidad con Terraform, Docker y GitHub Actions.
+Infraestructura DevOps del proyecto **TurneroApp** — pipelines CI/CD, infraestructura como código, contenedores, análisis de seguridad y observabilidad, sobre una app .NET + React en producción.
+
+![Terraform](https://img.shields.io/badge/Terraform-1.x-7B42BC?logo=terraform&logoColor=white)
+![Docker](https://img.shields.io/badge/Docker-Compose-2496ED?logo=docker&logoColor=white)
+![Prometheus](https://img.shields.io/badge/Prometheus-E6522C?logo=prometheus&logoColor=white)
+![Grafana](https://img.shields.io/badge/Grafana-F46800?logo=grafana&logoColor=white)
+![GitHub Actions](https://img.shields.io/badge/GitHub%20Actions-2088FF?logo=githubactions&logoColor=white)
+![License](https://img.shields.io/badge/license-MIT-green)
+
+> Proyecto open source. Parte de un ecosistema de 3 repos:
+> [TurneroBack](https://github.com/Juanruizkk/TurneroBack) · [TurneroFront](https://github.com/Juanruizkk/TurneroFront) · **turnero-devops** (este)
+
+## El ecosistema DevOps
+
+| Herramienta | Rol en el pipeline |
+|------|-------------|
+| **GitHub Actions** | CI/CD: build, tests, análisis y deploy en cada push |
+| **Terraform** | IaC: provisiona el stack de observabilidad y calidad |
+| **Docker** | Contenedores multi-stage (build + runtime, usuario no-root) |
+| **SonarCloud** | Análisis estático y Quality Gate |
+| **Snyk + SBOM (CycloneDX)** | Seguridad de dependencias NuGet/npm/Docker |
+| **Prometheus + Grafana** | Métricas y dashboards (local y producción) |
 
 ## Repositorios relacionados
 
@@ -140,3 +161,26 @@ No hace `apply` en CI — la infraestructura es local.
 | `sonarqube_port` | `9000` | Puerto SonarQube |
 | `grafana_admin_password` | `turnero2024` | Contraseña Grafana |
 | `monitoring_config_path` | `../monitoring` | Ruta a la carpeta monitoring/ |
+
+---
+
+## Capturas
+
+> Copiá las imágenes a `docs/screenshots/` del repo para que se vean acá.
+
+| | |
+|---|---|
+| Pipeline CI backend (6 jobs en verde) | Snyk — dependencias analizadas |
+| SonarCloud — Quality Gate | Prometheus — targets activos |
+| Grafana local (Terraform) | Grafana producción (monitoreo.metaturnos.com) |
+| `terraform plan` — sin cambios | SBOM CycloneDX publicado como artifact |
+
+```markdown
+![CI backend](docs/screenshots/01-ci-backend.png)
+![Grafana prod](docs/screenshots/09-grafana-prod.png)
+![Terraform plan](docs/screenshots/10-terraform-plan.png)
+```
+
+## Licencia
+
+MIT.
