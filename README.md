@@ -66,9 +66,18 @@ turnero-devops/
 │           ├── provisioning.yml # Auto-provisioning de dashboards
 │           └── turnero-api.json # Dashboard "TurneroApp API — Métricas"
 ├── docker-compose.devops.yml    # Alternativa rápida sin Terraform
-├── docker-compose.prod.yml      # Stack de producción
+├── docker-compose.prod.yml      # Self-host del stack completo (ver nota abajo)
 └── .gitignore
 ```
+
+> **Nota sobre el deploy de producción.** La infraestructura oficial corre en **Dokploy**, donde el backend y el frontend se despliegan como servicios tipo **Application** (build directo desde los repos `TurneroBack` / `TurneroFront`, trigger *On Push*), y las variables de entorno se cargan desde el panel de Dokploy. El stack de monitoreo sí corre como Compose (`docker-compose.monitoring.yml`).
+>
+> `docker-compose.prod.yml` **no lo usa esa infra**: es una referencia lista para **self-host** de todo el stack (Postgres + API + Frontend) con un solo comando, pensada para quien clone el proyecto y no use Dokploy:
+>
+> ```bash
+> # Definí las variables en un .env junto al archivo y luego:
+> docker compose -f docker-compose.prod.yml up -d
+> ```
 
 ---
 
