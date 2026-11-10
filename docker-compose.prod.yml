@@ -50,6 +50,10 @@ services:
       Cloudinary__ApiKey: ${Cloudinary__ApiKey}
       Cloudinary__ApiSecret: ${Cloudinary__ApiSecret}
       Cors__AllowedOrigins: ${Cors__AllowedOrigins}
+      # Demo pública por visitante. Default false si no se setea en Dokploy.
+      Demo__Enabled: ${Demo__Enabled:-false}
+      # Casilla que recibe reportes de problema y solicitudes de ampliación.
+      Soporte__Email: ${Soporte__Email:-juanignacioruizr@gmail.com}
     depends_on:
       postgres:
         condition: service_healthy
